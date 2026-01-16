@@ -315,7 +315,7 @@ final class WC_VIP_Club {
 			)
 		);
 	}
-	
+
 	/**
 	 * Add account tab.
 	 *
