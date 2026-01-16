@@ -297,9 +297,9 @@ final class WC_VIP_Club {
 		);
 
 		printf(
-			/* translators: 1: Role display name, 2: Role slug identifier. */
 			'<p>%s</p>',
 			sprintf(
+				// translators: 1: Role display name, 2: Role slug identifier.
 				esc_html__( 'Role: %1$s (%2$s)', 'vip-club' ),
 				'<code>' . esc_html( $this->get_role_name() ) . '</code>',
 				'<code>' . esc_html( $this->get_role_slug() ) . '</code>'
@@ -307,15 +307,15 @@ final class WC_VIP_Club {
 		);
 
 		printf(
-			/* translators: %s: Minimum spending amount to achieve VIP status. */
 			'<p>%s</p></div>',
 			sprintf(
+				// translators: %s: Minimum spending amount to achieve VIP status.
 				esc_html__( 'Threshold: %s', 'vip-club' ),
 				'<code>' . wp_kses_post( wc_price( $this->get_threshold() ) ) . '</code>'
 			)
 		);
 	}
-
+	
 	/**
 	 * Add account tab.
 	 *
@@ -366,10 +366,9 @@ final class WC_VIP_Club {
 				esc_html__( 'Active', 'vip-club' )
 			);
 			printf(
-				/* translators: %s: Customer's lifetime spending amount. */
 				'<p class="vip-lifetime-spent">%s</p>',
 				sprintf(
-					// translators: %s: The customer's total lifetime spending amount.
+					// translators: %s: Customer's total lifetime spending amount.
 					esc_html__( 'Lifetime spending: %s', 'vip-club' ),
 					'<strong>' . wp_kses_post( wc_price( $total ) ) . '</strong>'
 				)
@@ -387,10 +386,9 @@ final class WC_VIP_Club {
 
 			if ( $remaining > 0 ) {
 				printf(
-					/* translators: 1: Amount remaining to reach VIP status, 2: Total threshold amount required. */
 					'<p class="vip-progress">%s</p>',
 					sprintf(
-						// translators: 1: The amount remaining to reach VIP status, 2: The total threshold amount.
+						// translators: 1: Amount remaining to reach VIP status, 2: Total threshold amount required.
 						esc_html__( 'Spend %1$s more to join VIP (threshold: %2$s)', 'vip-club' ),
 						'<strong>' . wp_kses_post( wc_price( $remaining ) ) . '</strong>',
 						wp_kses_post( wc_price( $threshold ) )
@@ -403,10 +401,9 @@ final class WC_VIP_Club {
 					esc_attr( number_format( $percentage, 2 ) )
 				);
 				printf(
-					/* translators: %s: Progress percentage. */
 					'<p class="vip-progress-percent">%s</p>',
 					sprintf(
-						// translators: %s: The customer's progress percentage toward VIP status.
+						// translators: %s: Progress percentage toward VIP status.
 						esc_html__( 'Progress: %s%%', 'vip-club' ),
 						esc_html( number_format( $percentage, 1 ) )
 					)
