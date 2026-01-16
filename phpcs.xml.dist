@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ruleset name="VIP Club WPCS">
+	<description>WordPress Coding Standards for VIP Club plugin.</description>
+
+	<rule ref="WordPress" />
+
+	<config name="minimum_supported_wp_version" value="5.8"/>
+
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>node_modules/*</exclude-pattern>
+	<exclude-pattern>.github/*</exclude-pattern>
+</ruleset>
