@@ -14,6 +14,8 @@
  * Tested up to: 6.6
  * Requires PHP: 8.0
  *
+ * Main plugin class handling VIP role assignment based on WooCommerce customer spending.
+ *
  * @package    WC_VIP_Club
  * @author     Elisabetta Carrara <elisabetta.marina.clelia@gmail.com>
  */
@@ -28,6 +30,8 @@ if ( ! defined( 'WC_VIP_CLUB_VERSION' ) ) {
 
 /**
  * Main VIP Club Class
+ *
+ * Handles VIP role synchronization, settings, and account display.
  */
 final class WC_VIP_Club {
 
@@ -185,25 +189,23 @@ final class WC_VIP_Club {
 	 * Settings preview notice.
 	 */
 	public function settings_preview_notice() {
-		if ( ! isset( $_GET['page'], $_GET['tab'] ) || $_GET['tab'] !== 'vip_club' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
+		if ( isset( $_GET['page'] ) && isset( $_GET['tab'] ) && 'vip_club' === $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			printf(
+				/* translators: %s: Settings preview notice. */
+				'<div class="notice notice-info"><p><strong>%s</strong></p><p>%s</p><p>%s</p></div>',
+				esc_html__( 'Settings preview:', 'vip-club' ),
+				sprintf(
+					/* translators: 1: Role name, 2: Role slug. */
+					esc_html__( 'Role: %1$s (%2$s)', 'vip-club' ),
+					'<code>' . esc_html( $this->get_role_name() ) . '</code>',
+					'<code>' . esc_html( $this->get_role_slug() ) . '</code>'
+				),
+				sprintf(
+					esc_html__( 'Threshold: %s', 'vip-club' ),
+					'<code>' . wp_kses_post( wc_price( $this->get_threshold() ) ) . '</code>'
+				)
+			);
 		}
-		printf(
-			/* translators: %s: Settings preview notice. */
-			'<div class="notice notice-info"><p><strong>%s</strong></p><p>%s</p><p>%s</p></div>',
-			esc_html__( 'Settings preview:', 'vip-club' ),
-			sprintf(
-				/* translators: 1: Role name, 2: Role slug. */
-				esc_html__( 'Role: %1$s (%2$s)', 'vip-club' ),
-				'<code>' . esc_html( $this->get_role_name() ) . '</code>',
-				'<code>' . esc_html( $this->get_role_slug() ) . '</code>'
-			),
-			sprintf(
-				/* translators: %s: Threshold amount. */
-				esc_html__( 'Threshold: %s', 'vip-club' ),
-				'<code>' . wc_price( $this->get_threshold() ) . '</code>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			)
-		);
 	}
 
 	/**
@@ -214,7 +216,7 @@ final class WC_VIP_Club {
 	 */
 	public function add_account_tab( array $tabs ) {
 		$tabs['vip_club'] = array(
-			'title'  => __( 'VIP Club', 'vip-club' ),
+			'title'    => __( 'VIP Club', 'vip-club' ),
 			'priority' => 50,
 		);
 		return $tabs;
@@ -243,7 +245,7 @@ final class WC_VIP_Club {
 				sprintf(
 					/* translators: %s: Amount spent. */
 					esc_html__( 'Lifetime: %s', 'vip-club' ),
-					'<strong>' . wc_price( $total ) . '</strong>'
+					'<strong>' . wp_kses_post( wc_price( $total ) ) . '</strong>'
 				)
 			);
 		} else {
@@ -258,9 +260,9 @@ final class WC_VIP_Club {
 					/* translators: 1: Amount remaining, 2: Threshold. */
 					'<p>%s <strong>%s</strong> %s %s</p>',
 					esc_html__( 'Spend', 'vip-club' ),
-					wc_price( $remaining ),
+					wp_kses_post( wc_price( $remaining ) ),
 					esc_html__( 'more to join VIP (threshold:', 'vip-club' ),
-					wc_price( $threshold ) . ')'
+					wp_kses_post( wc_price( $threshold ) ) . ')'
 				);
 			}
 		}
@@ -279,10 +281,10 @@ final class WC_VIP_Club {
 	 * @return WC_VIP_Club
 	 */
 	public static function get_instance() {
-		if ( null === static::$instance ) {
-			static::$instance = new static();
+		if ( null === self::$instance ) {
+			self::$instance = new self();
 		}
-		return static::$instance;
+		return self::$instance;
 	}
 }
 
