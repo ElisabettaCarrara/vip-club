@@ -1,0 +1,29 @@
+name: WordPress Coding Standards
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  wpcs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer, phpcs
+
+      - name: Install WordPress Coding Standards
+        run: |
+          composer global require wp-coding-standards/wpcs
+          phpcs --config-set installed_paths $(composer global config home)/vendor/wp-coding-standards/wpcs
+
+      - name: Run PHPCS
+        run: |
+          phpcs --standard=WordPress --extensions=php --ignore=vendor,node_modules .
