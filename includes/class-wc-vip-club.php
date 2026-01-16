@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Main VIP Club Class
  *
  * Handles VIP role management and automatic assignment based on customer lifetime spending.
+ * Compatible with WordPress/WooCommerce and ClassicPress/Classic Commerce.
  */
 final class WC_VIP_Club {
 
@@ -47,12 +48,41 @@ final class WC_VIP_Club {
 	private static $instance = null;
 
 	/**
+	 * Whether running on ClassicPress.
+	 *
+	 * @var bool
+	 */
+	private $is_classicpress = false;
+
+	/**
+	 * Whether Classic Commerce is active.
+	 *
+	 * @var bool
+	 */
+	private $is_classic_commerce = false;
+
+	/**
 	 * Constructor.
 	 *
 	 * Sets up plugin initialization hooks.
 	 */
 	public function __construct() {
+		$this->detect_environment();
 		$this->init_hooks();
+	}
+
+	/**
+	 * Detect ClassicPress and Classic Commerce environment.
+	 *
+	 * @return void
+	 */
+	private function detect_environment() {
+		$this->is_classicpress = function_exists( 'classicpress_version' );
+
+		if ( $this->is_classicpress && did_action( 'plugins_loaded' ) ) {
+			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			$this->is_classic_commerce = is_plugin_active( 'classic-commerce/classic-commerce.php' );
+		}
 	}
 
 	/**
@@ -61,28 +91,24 @@ final class WC_VIP_Club {
 	 * @return void
 	 */
 	private function init_hooks() {
-		// Initialize plugin.
 		add_action( 'init', array( $this, 'init' ) );
 
-		// Add VIP Club settings tab to WooCommerce.
-		add_filter( 'woocommerce_settings_tabs_array', array( $this, 'add_settings_tab' ) );
+		// Commerce settings compatibility.
+		$settings_hook = $this->is_classic_commerce ? 'classic_commerce_settings_tabs_array' : 'woocommerce_settings_tabs_array';
+		add_filter( $settings_hook, array( $this, 'add_settings_tab' ) );
 
-		// Render settings tab content.
-		add_action( 'woocommerce_settings_vip_club', array( $this, 'render_settings_tab' ) );
+		$settings_action = $this->is_classic_commerce ? 'classic_commerce_settings_vip_club' : 'woocommerce_settings_vip_club';
+		add_action( $settings_action, array( $this, 'render_settings_tab' ) );
 
-		// Save settings when updated.
-		add_action( 'woocommerce_update_options_vip_club', array( $this, 'save_settings' ) );
+		$save_action = $this->is_classic_commerce ? 'classic_commerce_update_options_vip_club' : 'woocommerce_update_options_vip_club';
+		add_action( $save_action, array( $this, 'save_settings' ) );
 
-		// Display settings preview notice in admin.
 		add_action( 'admin_notices', array( $this, 'settings_preview_notice' ) );
 
-		// Add VIP Club tab to customer account area.
+		// Account tabs - WooCommerce/Classic Commerce agnostic.
 		add_filter( 'woocommerce_account_menu_items', array( $this, 'add_account_tab' ) );
-
-		// Render VIP Club account tab content.
 		add_action( 'woocommerce_account_vip_club_endpoint', array( $this, 'render_account_tab' ) );
 
-		// Load translations.
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 	}
 
@@ -150,7 +176,6 @@ final class WC_VIP_Club {
 	 * @return void
 	 */
 	private function sync_vip_role() {
-		// Get the customer role to copy capabilities from.
 		$customer = get_role( 'customer' );
 		if ( ! $customer ) {
 			return;
@@ -158,25 +183,27 @@ final class WC_VIP_Club {
 
 		$slug = $this->get_role_slug();
 
-		// Remove existing VIP role to ensure clean state.
 		remove_role( $slug );
-
-		// Add VIP role with customer capabilities.
 		add_role( $slug, $this->get_role_name(), $customer->capabilities );
 
-		// Allow third-party plugins to hook into role sync.
+		/**
+		 * Fires after VIP role is synced.
+		 *
+		 * @param string $slug        Role slug.
+		 * @param string $role_name   Role display name.
+		 */
 		do_action( 'vip_club_role_synced', $slug, $this->get_role_name() );
 	}
 
 	/**
 	 * Add settings tab.
 	 *
-	 * Adds VIP Club tab to WooCommerce settings.
+	 * Adds VIP Club tab to WooCommerce/Classic Commerce settings.
 	 *
 	 * @param array $tabs Existing settings tabs.
 	 * @return array Updated tabs array.
 	 */
-	public function add_settings_tab( array $tabs ) {
+	public function add_settings_tab( $tabs ) {
 		$tabs['vip_club'] = __( 'VIP Club', 'vip-club' );
 		return $tabs;
 	}
@@ -186,7 +213,7 @@ final class WC_VIP_Club {
 	 *
 	 * Defines all settings fields for the VIP Club settings page.
 	 *
-	 * @return array[] Settings fields definition.
+	 * @return array Settings fields definition.
 	 */
 	private function get_settings_fields() {
 		return array(
@@ -203,10 +230,10 @@ final class WC_VIP_Club {
 				'desc'    => __( 'The display name for the VIP role.', 'vip-club' ),
 			),
 			array(
-				'name'    => __( 'Advanced: role slug override', 'vip-club' ),
-				'type'    => 'text',
-				'id'      => self::OPTION_ROLE_SLUG,
-				'desc'    => __( 'Optional. Leave empty to auto-generate from role name.', 'vip-club' ),
+				'name' => __( 'Advanced: role slug override', 'vip-club' ),
+				'type' => 'text',
+				'id'   => self::OPTION_ROLE_SLUG,
+				'desc' => __( 'Optional. Leave empty to auto-generate from role name.', 'vip-club' ),
 			),
 			array(
 				'name'              => __( 'Spending threshold', 'vip-club' ),
@@ -257,24 +284,34 @@ final class WC_VIP_Club {
 	 * @return void
 	 */
 	public function settings_preview_notice() {
-		// Only show notice on VIP Club settings tab.
-		if ( ! isset( $_GET['page'], $_GET['tab'] ) || 'vip_club' !== $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['page'], $_GET['tab'] ) || 'vip_club' !== $_GET['tab'] ) {
 			return;
 		}
+		// phpcs:enable
 
 		printf(
-			'<div class="notice notice-info"><p><strong>%s</strong></p><p>%s</p><p>%s</p></div>',
-			esc_html__( 'Settings preview:', 'vip-club' ),
+			/* translators: %s: Settings preview label. */
+			'<div class="notice notice-info"><p><strong>%s</strong></p>',
+			esc_html__( 'Settings preview:', 'vip-club' )
+		);
+
+		printf(
+			/* translators: 1: Role display name, 2: Role slug identifier. */
+			'<p>%s</p>',
 			sprintf(
-				/* translators: 1: Role display name, 2: Role slug identifier. */
 				esc_html__( 'Role: %1$s (%2$s)', 'vip-club' ),
 				'<code>' . esc_html( $this->get_role_name() ) . '</code>',
 				'<code>' . esc_html( $this->get_role_slug() ) . '</code>'
-			),
+			)
+		);
+
+		printf(
+			/* translators: %s: Minimum spending amount to achieve VIP status. */
+			'<p>%s</p></div>',
 			sprintf(
-				/* translators: %s: Minimum spending amount to achieve VIP status. */
 				esc_html__( 'Threshold: %s', 'vip-club' ),
-				'<code>' . wc_price( $this->get_threshold() ) . '</code>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				'<code>' . wc_price( $this->get_threshold() ) . '</code>'
 			)
 		);
 	}
@@ -287,11 +324,12 @@ final class WC_VIP_Club {
 	 * @param array $tabs Account navigation tabs.
 	 * @return array Updated tabs array.
 	 */
-	public function add_account_tab( array $tabs ) {
+	public function add_account_tab( $tabs ) {
 		$tabs['vip_club'] = array(
 			'title'    => __( 'VIP Club', 'vip-club' ),
 			'priority' => 50,
 		);
+
 		return $tabs;
 	}
 
@@ -308,15 +346,18 @@ final class WC_VIP_Club {
 			return;
 		}
 
-		// Get VIP configuration and user data.
 		$slug      = $this->get_role_slug();
 		$threshold = $this->get_threshold();
 		$is_vip    = in_array( $slug, (array) $current_user->roles, true );
-		$total     = wc_get_customer_total_spent( $current_user->ID );
+
+		// Compatible total spent retrieval.
+		$total = 0.0;
+		if ( function_exists( 'wc_get_customer_total_spent' ) ) {
+			$total = wc_get_customer_total_spent( $current_user->ID );
+		}
 
 		echo '<div class="woocommerce-vip-club">';
 
-		// Display VIP status for active members.
 		if ( $is_vip ) {
 			echo '<div class="vip-status vip-active">';
 			printf(
@@ -330,12 +371,11 @@ final class WC_VIP_Club {
 				sprintf(
 					/* translators: %s: Total amount spent. */
 					esc_html__( 'Lifetime spending: %s', 'vip-club' ),
-					'<strong>' . wc_price( $total ) . '</strong>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					'<strong>' . wc_price( $total ) . '</strong>'
 				)
 			);
 			echo '</div>';
 		} else {
-			// Display progress information for non-VIP customers.
 			$remaining = max( 0, $threshold - $total );
 
 			echo '<div class="vip-status vip-inactive">';
@@ -345,7 +385,6 @@ final class WC_VIP_Club {
 				esc_html__( 'Inactive', 'vip-club' )
 			);
 
-			// Show how much more they need to spend.
 			if ( $remaining > 0 ) {
 				printf(
 					/* translators: 1: Amount remaining to reach VIP status, 2: Total threshold amount required. */
@@ -353,15 +392,14 @@ final class WC_VIP_Club {
 					sprintf(
 						/* translators: 1: Amount remaining, 2: Threshold amount. */
 						esc_html__( 'Spend %1$s more to join VIP (threshold: %2$s)', 'vip-club' ),
-						'<strong>' . wc_price( $remaining ) . '</strong>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-						wc_price( $threshold ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'<strong>' . wc_price( $remaining ) . '</strong>',
+						wc_price( $threshold )
 					)
 				);
 
-				// Calculate and display progress percentage.
 				$percentage = $threshold > 0 ? min( 100, ( $total / $threshold ) * 100 ) : 0;
 				printf(
-					'<div class="vip-progress-bar"><div class="vip-progress-fill" style="width: %s%%"></div></div>',
+					'<div class="vip-progress-bar"><div class="vip-progress-fill" style="width: %s%%;"></div></div>',
 					esc_attr( number_format( $percentage, 2 ) )
 				);
 				printf(
@@ -370,7 +408,7 @@ final class WC_VIP_Club {
 					sprintf(
 						/* translators: %s: Percentage value. */
 						esc_html__( 'Progress: %s%%', 'vip-club' ),
-						number_format( $percentage, 1 )
+						esc_html( number_format( $percentage, 1 ) )
 					)
 				);
 			}
@@ -406,6 +444,7 @@ final class WC_VIP_Club {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
+
 		return self::$instance;
 	}
 }
