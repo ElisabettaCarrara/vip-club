@@ -33,4 +33,5 @@ jobs:
 
       - name: Run PHPCS
         run: |
-          ./vendor/bin/phpcs --standard=phpcs.xml.dist -n --colors
+          # Scan all PHP files (includes/, *.php, excludes vendor/assets/etc. via phpcs.xml.dist)
+          ./vendor/bin/phpcs src/**/*.php includes/**/*.php *.php --standard=phpcs.xml.dist -n --colors
