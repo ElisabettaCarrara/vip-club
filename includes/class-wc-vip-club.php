@@ -141,7 +141,7 @@ final class WC_VIP_Club {
 	 * @return string Role name.
 	 */
 	public function get_role_name() {
-		return apply_filters( 'vip_club_role_name', get_option( self::OPTION_ROLE_NAME, __( 'VIP Customer', 'vip-club' ) ) );
+		return apply_filters( 'vip_club_role_name', get_option( self::OPTION_ROLE_NAME, __( 'VIP Customer', 'wc-vip-club' ) ) );
 	}
 
 	/**
@@ -204,7 +204,7 @@ final class WC_VIP_Club {
 	 * @return array Updated tabs array.
 	 */
 	public function add_settings_tab( $tabs ) {
-		$tabs['vip_club'] = __( 'VIP Club', 'vip-club' );
+		$tabs['vip_club'] = __( 'VIP Club', 'wc-vip-club' );
 		return $tabs;
 	}
 
@@ -218,29 +218,29 @@ final class WC_VIP_Club {
 	private function get_settings_fields() {
 		return array(
 			array(
-				'name' => __( 'VIP Club Settings', 'vip-club' ),
+				'name' => __( 'VIP Club Settings', 'wc-vip-club' ),
 				'type' => 'title',
 				'id'   => 'vip_club_section',
 			),
 			array(
-				'name'    => __( 'VIP role name', 'vip-club' ),
+				'name'    => __( 'VIP role name', 'wc-vip-club' ),
 				'type'    => 'text',
 				'id'      => self::OPTION_ROLE_NAME,
-				'default' => __( 'VIP Customer', 'vip-club' ),
-				'desc'    => __( 'The display name for the VIP role.', 'vip-club' ),
+				'default' => __( 'VIP Customer', 'wc-vip-club' ),
+				'desc'    => __( 'The display name for the VIP role.', 'wc-vip-club' ),
 			),
 			array(
-				'name' => __( 'Advanced: role slug override', 'vip-club' ),
+				'name' => __( 'Advanced: role slug override', 'wc-vip-club' ),
 				'type' => 'text',
 				'id'   => self::OPTION_ROLE_SLUG,
-				'desc' => __( 'Optional. Leave empty to auto-generate from role name.', 'vip-club' ),
+				'desc' => __( 'Optional. Leave empty to auto-generate from role name.', 'wc-vip-club' ),
 			),
 			array(
-				'name'              => __( 'Spending threshold', 'vip-club' ),
+				'name'              => __( 'Spending threshold', 'wc-vip-club' ),
 				'type'              => 'number',
 				'id'                => self::OPTION_THRESHOLD,
 				'default'           => '1000',
-				'desc'              => __( 'Minimum lifetime spending to achieve VIP status.', 'vip-club' ),
+				'desc'              => __( 'Minimum lifetime spending to achieve VIP status.', 'wc-vip-club' ),
 				'custom_attributes' => array(
 					'min'  => '0',
 					'step' => '0.01',
@@ -293,14 +293,14 @@ final class WC_VIP_Club {
 		printf(
 			/* translators: %s: Settings preview label. */
 			'<div class="notice notice-info"><p><strong>%s</strong></p>',
-			esc_html__( 'Settings preview:', 'vip-club' )
+			esc_html__( 'Settings preview:', 'wc-vip-club' )
 		);
 
 		printf(
 			'<p>%s</p>',
 			sprintf(
 				// translators: 1: Role display name, 2: Role slug identifier.
-				esc_html__( 'Role: %1$s (%2$s)', 'vip-club' ),
+				esc_html__( 'Role: %1$s (%2$s)', 'wc-vip-club' ),
 				'<code>' . esc_html( $this->get_role_name() ) . '</code>',
 				'<code>' . esc_html( $this->get_role_slug() ) . '</code>'
 			)
@@ -310,7 +310,7 @@ final class WC_VIP_Club {
 			'<p>%s</p></div>',
 			sprintf(
 				// translators: %s: Minimum spending amount to achieve VIP status.
-				esc_html__( 'Threshold: %s', 'vip-club' ),
+				esc_html__( 'Threshold: %s', 'wc-vip-club' ),
 				'<code>' . wp_kses_post( wc_price( $this->get_threshold() ) ) . '</code>'
 			)
 		);
@@ -326,7 +326,7 @@ final class WC_VIP_Club {
 	 */
 	public function add_account_tab( $tabs ) {
 		$tabs['vip_club'] = array(
-			'title'    => __( 'VIP Club', 'vip-club' ),
+			'title'    => __( 'VIP Club', 'wc-vip-club' ),
 			'priority' => 50,
 		);
 
@@ -356,20 +356,20 @@ final class WC_VIP_Club {
 			$total = wc_get_customer_total_spent( $current_user->ID );
 		}
 
-		echo '<div class="woocommerce-vip-club">';
+		echo '<div class="woocommerce-wc-vip-club">';
 
 		if ( $is_vip ) {
 			echo '<div class="vip-status vip-active">';
 			printf(
 				'<p class="vip-status-label">%s <strong>%s</strong></p>',
-				esc_html__( 'VIP Status:', 'vip-club' ),
-				esc_html__( 'Active', 'vip-club' )
+				esc_html__( 'VIP Status:', 'wc-vip-club' ),
+				esc_html__( 'Active', 'wc-vip-club' )
 			);
 			printf(
 				'<p class="vip-lifetime-spent">%s</p>',
 				sprintf(
 					// translators: %s: Customer's total lifetime spending amount.
-					esc_html__( 'Lifetime spending: %s', 'vip-club' ),
+					esc_html__( 'Lifetime spending: %s', 'wc-vip-club' ),
 					'<strong>' . wp_kses_post( wc_price( $total ) ) . '</strong>'
 				)
 			);
@@ -380,8 +380,8 @@ final class WC_VIP_Club {
 			echo '<div class="vip-status vip-inactive">';
 			printf(
 				'<p class="vip-status-label">%s <strong>%s</strong></p>',
-				esc_html__( 'VIP Status:', 'vip-club' ),
-				esc_html__( 'Inactive', 'vip-club' )
+				esc_html__( 'VIP Status:', 'wc-vip-club' ),
+				esc_html__( 'Inactive', 'wc-vip-club' )
 			);
 
 			if ( $remaining > 0 ) {
@@ -389,7 +389,7 @@ final class WC_VIP_Club {
 					'<p class="vip-progress">%s</p>',
 					sprintf(
 						// translators: 1: Amount remaining to reach VIP status, 2: Total threshold amount required.
-						esc_html__( 'Spend %1$s more to join VIP (threshold: %2$s)', 'vip-club' ),
+						esc_html__( 'Spend %1$s more to join VIP (threshold: %2$s)', 'wc-vip-club' ),
 						'<strong>' . wp_kses_post( wc_price( $remaining ) ) . '</strong>',
 						wp_kses_post( wc_price( $threshold ) )
 					)
@@ -404,7 +404,7 @@ final class WC_VIP_Club {
 					'<p class="vip-progress-percent">%s</p>',
 					sprintf(
 						// translators: %s: Progress percentage toward VIP status.
-						esc_html__( 'Progress: %s%%', 'vip-club' ),
+						esc_html__( 'Progress: %s%%', 'wc-vip-club' ),
 						esc_html( number_format( $percentage, 1 ) )
 					)
 				);
@@ -424,7 +424,7 @@ final class WC_VIP_Club {
 	 */
 	public function load_textdomain() {
 		load_plugin_textdomain(
-			'vip-club',
+			'wc-vip-club',
 			false,
 			dirname( plugin_basename( WC_VIP_CLUB_PLUGIN_FILE ) ) . '/languages'
 		);

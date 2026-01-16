@@ -133,7 +133,7 @@ Translations
 The plugin is fully translation-ready.
 
 Text domain:
-vip-club
+wc-vip-club
 
 
 Frequently Asked Questions

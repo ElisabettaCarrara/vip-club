@@ -8,7 +8,7 @@
  * Author URI:  https://elica-webservices.it
  * License:     GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: vip-club
+ * Text Domain: wc-vip-club
  * Domain Path: /languages
  * Requires at least: 5.8
  * Tested up to: 6.6
@@ -61,8 +61,8 @@ function wc_vip_club_woocommerce_missing_notice() {
 			<?php
 			printf(
 				/* translators: %s: Plugin name. */
-				esc_html__( '%s requires WooCommerce to be installed and active.', 'vip-club' ),
-				'<strong>' . esc_html__( 'VIP Club', 'vip-club' ) . '</strong>'
+				esc_html__( '%s requires WooCommerce to be installed and active.', 'wc-vip-club' ),
+				'<strong>' . esc_html__( 'VIP Club', 'wc-vip-club' ) . '</strong>'
 			);
 			?>
 		</p>
@@ -83,7 +83,7 @@ function wc_vip_club_init() {
 	}
 
 	// Load the main plugin class.
-	require_once WC_VIP_CLUB_PLUGIN_DIR . 'includes/class-wc-vip-club.php';
+	require_once WC_VIP_CLUB_PLUGIN_DIR . 'includes/class-wc-wc-vip-club.php';
 
 	// Initialize the plugin.
 	WC_VIP_Club::get_instance();
@@ -102,8 +102,8 @@ function wc_vip_club_enqueue_styles() {
 	}
 
 	wp_enqueue_style(
-		'wc-vip-club',
-		WC_VIP_CLUB_PLUGIN_URL . 'assets/wc-vip-club.css',
+		'wc-wc-vip-club',
+		WC_VIP_CLUB_PLUGIN_URL . 'assets/wc-wc-vip-club.css',
 		array(),
 		WC_VIP_CLUB_VERSION
 	);
@@ -122,10 +122,10 @@ function wc_vip_club_activate() {
 		wp_die(
 			sprintf(
 				/* translators: %s: Plugin name. */
-				esc_html__( '%s requires WooCommerce to be installed and active.', 'vip-club' ),
-				'<strong>' . esc_html__( 'VIP Club', 'vip-club' ) . '</strong>'
+				esc_html__( '%s requires WooCommerce to be installed and active.', 'wc-vip-club' ),
+				'<strong>' . esc_html__( 'VIP Club', 'wc-vip-club' ) . '</strong>'
 			),
-			esc_html__( 'Plugin Activation Error', 'vip-club' ),
+			esc_html__( 'Plugin Activation Error', 'wc-vip-club' ),
 			array( 'back_link' => true )
 		);
 		return;
