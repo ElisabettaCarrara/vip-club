@@ -25,31 +25,13 @@ jobs:
           path: ~/.composer/cache
           key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
 
-      - name: Install Coding Standards
+      - name: Initialize Composer & Install WPCS
         run: |
-          composer init --no-interaction --name="vip-club/plugin" --type="wordpress-plugin" --no-dev
+          composer init --no-interaction --name="vip-club/plugin" --type="wordpress-plugin"
           composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-          composer require --dev \
-            wp-coding-standards/wpcs:^3.1 \
-            squizlabs/php_codesniffer:^3.10 \
-            --no-progress --no-interaction
-
-      - name: Generate phpcs.xml
-        run: |
-          if [ -f phpcs.xml.dist ]; then
-            cp phpcs.xml.dist phpcs.xml
-          else
-            echo "<?xml version='1.0'?>
-<ruleset name='Default WP'>
-    <rule ref='WordPress-Core'/>
-</ruleset>" > phpcs.xml
-          fi
+          composer require --dev wp-coding-standards/wpcs:^3.1 squizlabs/php_codesniffer:^3.10 --no-progress --no-interaction
 
       - name: Run PHPCS
         run: |
-          ./vendor/bin/phpcs \
-            --extensions=php \
-            --ignore=*/vendor/*,*/node_modules/*,*/assets/*,*/languages/*,*/tests/* \
-            *.php includes/ admin/ public/ \
-            --standard=phpcs.xml \
-            -n --colors --report=summary
+          # Scans ALL PHP files in the repo, ignoring only vendor and node_modules
+          ./vendor/bin/phpcs . --extensions=php --ignore=vendor/*,node_modules/* --standard=phpcs.xml.dist -n --colors
