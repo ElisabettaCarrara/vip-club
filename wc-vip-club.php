@@ -12,7 +12,7 @@
  * Domain Path: /languages
  * Requires at least: 5.8
  * Tested up to: 6.6
- * Requires PHP: 8.0
+ * Requires PHP: 8.2
  * Requires Plugins: woocommerce
  *
  * @package    WC_VIP_Club
