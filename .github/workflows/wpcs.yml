@@ -2,15 +2,12 @@ name: WordPress Coding Standards
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
   pull_request:
 
 jobs:
   wpcs:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,18 +16,20 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
-          tools: composer, phpcs
           coverage: none
+          tools: composer
 
-      - name: Allow PHPCS Composer plugin
-        run: |
-          composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
 
-      - name: Install WordPress Coding Standards
+      - name: Install PHP CodeSniffer & WPCS
         run: |
-          composer global require wp-coding-standards/wpcs
-          phpcs --config-set installed_paths "$(composer global config home)/vendor/wp-coding-standards/wpcs"
+          composer require --dev wp-coding-standards/wpcs:^3.1 squizlabs/php_codesniffer:^3.10 --no-scripts --no-progress --no-interaction
+          # Auto-registers installed_paths via Composer plugin - no manual config needed
 
       - name: Run PHPCS
         run: |
-          phpcs --standard=phpcs.xml.dist -n
+          ./vendor/bin/phpcs --standard=phpcs.xml.dist -n --colors
