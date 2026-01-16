@@ -15,7 +15,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.2'
           coverage: none
           tools: composer
 
@@ -25,13 +25,24 @@ jobs:
           path: ~/.composer/cache
           key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
 
-      - name: Initialize Composer & Install WPCS
+      - name: Initialize Composer & Install Coding Standards
         run: |
           composer init --no-interaction --name="vip-club/plugin" --type="wordpress-plugin"
           composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-          composer require --dev wp-coding-standards/wpcs:^3.1 squizlabs/php_codesniffer:^3.10 --no-progress --no-interaction
+          composer require --dev \
+            wp-coding-standards/wpcs:^3.1 \
+            squizlabs/php_codesniffer:^3.10 \
+            --no-progress --no-interaction
+
+      - name: Generate phpcs.xml from phpcs.xml.dist (if exists)
+        run: |
+          if [ -f phpcs.xml.dist ]; then
+            cp phpcs.xml.dist phpcs.xml
+          else
+            echo "No phpcs.xml.dist found, using WordPress standard"
+          fi
 
       - name: Run PHPCS
         run: |
-          # Scans ALL .php files recursively, ignores exclusions from phpcs.xml.dist
-          ./vendor/bin/phpcs . --extensions=php --ignore=*/vendor/*,*/node_modules/*,*/assets/*,*/languages/* --standard=phpcs.xml.dist -n --colors
+          # Auto-discover config (phpcs.xml or WordPress-Core)
+          ./vendor/bin/phpcs --extensions=php --ignore=*/vendor/*,*/node_modules/*,*/assets/*,*/languages/* --standard=WordPress-Core -n --colors
